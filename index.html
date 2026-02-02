@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Papa</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  text-align: center;
+  overflow: hidden;
+  color: white;
+}
+
+/* MAIN SCREEN */
+
+#main {
+  margin-top: 12vh;
+  padding: 20px;
+}
+
+#main h1 {
+  font-size: 4rem;
+  text-shadow: 3px 3px 8px black;
+  animation: zoom 2s infinite alternate;
+}
+
+#main p {
+  font-size: 1.6rem;
+  margin: 30px auto;
+  max-width: 95%;
+  line-height: 1.6;
+}
+
+button {
+  font-size: 1.5rem;
+  padding: 15px 35px;
+  border: none;
+  border-radius: 40px;
+  background: #ff2d75;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #ff0055;
+  transform: scale(1.1);
+}
+
+/* CELEBRATION */
+
+#celebration {
+  display: none;
+  margin-top: 5vh;
+}
+
+#celebration h1 {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+}
+
+.cake {
+  font-size: 180px;
+  animation: bounce 1.5s infinite;
+}
+
+#celebration p {
+  font-size: 1.8rem;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+/* HEARTS */
+
+.heart {
+  position: absolute;
+  font-size: 40px;
+  animation: float 6s linear infinite;
+}
+
+/* CANVAS */
+
+#fireworksCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ANIMATIONS */
+
+@keyframes float {
+  0% { bottom: -50px; opacity: 1; }
+  100% { bottom: 110%; opacity: 0; transform: translateX(150px); }
+}
+
+@keyframes zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- MAIN -->
+
+<div id="main">
+
+  <h1>🎉 Happiest Birthday Papa 🎉</h1>
+
+  <p>
+    Papa ❤️ Aap meri duniya ho 🌍<br>
+    Aap meri strength ho 💪<br>
+    Aapka pyaar hi meri pehchaan hai 🙏<br>
+    Bhagwan aapko hamesha khush rakhe 🌸✨
+  </p>
+
+  <button onclick="startCelebration()">
+    🎁 Click For Surprise 🎁
+  </button>
+
+</div>
+
+
+<!-- CELEBRATION -->
+
+<div id="celebration">
+
+  <h1>🎂 Happy Birthday Papa 🎂</h1>
+
+  <div class="cake">🎂🎂🎂</div>
+
+  <p>
+    Love You Papa ❤️❤️❤️<br>
+    Aap mere superhero ho 🦸‍♂️✨<br>
+    Always Proud of You 🌟🙏
+  </p>
+
+  <!-- MP3 SONG -->
+  <audio id="song" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
+
+</div>
+
+
+<!-- FIREWORKS -->
+<canvas id="fireworksCanvas"></canvas>
+
+
+<script>
+
+/* START */
+
+function startCelebration(){
+
+  document.getElementById("main").style.display="none";
+  document.getElementById("celebration").style.display="block";
+
+  document.getElementById("song").play();
+
+  createHearts();
+  initFireworks();
+}
+
+/* HEARTS */
+
+function createHearts(){
+
+  setInterval(()=>{
+
+    let heart=document.createElement("div");
+    heart.className="heart";
+
+    let emojis=["❤️","💖","💝","💕","💞","💗","🌸","✨","🎉"];
+    heart.innerHTML=emojis[Math.floor(Math.random()*emojis.length)];
+
+    heart.style.left=Math.random()*100+"vw";
+    heart.style.animationDuration=(3+Math.random()*3)+"s";
+
+    document.body.appendChild(heart);
+
+    setTimeout(()=>heart.remove(),6000);
+
+  },250);
+}
+
+/* FIREWORKS */
+
+const canvas=document.getElementById("fireworksCanvas");
+const ctx=canvas.getContext("2d");
+
+let cw,ch;
+let fireworks=[];
+let particles=[];
+
+function resize(){
+  cw=canvas.width=window.innerWidth;
+  ch=canvas.height=window.innerHeight;
+}
+window.addEventListener("resize",resize);
+resize();
+
+class Firework{
+  constructor(sx,sy,tx,ty){
+    this.x=sx; this.y=sy;
+    this.sx=sx; this.sy=sy;
+    this.tx=tx; this.ty=ty;
+    this.angle=Math.atan2(ty-sy,tx-sx);
+    this.speed=5;
+    this.acc=1.05;
+    this.dist=Math.hypot(tx-sx,ty-sy);
+    this.travel=0;
+  }
+
+  update(i){
+    this.speed*=this.acc;
+
+    let vx=Math.cos(this.angle)*this.speed;
+    let vy=Math.sin(this.angle)*this.speed;
+
+    this.travel=Math.hypot(this.x+vx-this.sx,this.y+vy-this.sy);
+
+    if(this.travel>=this.dist){
+      explode(this.tx,this.ty);
+      fireworks.splice(i,1);
+    } else {
+      this.x+=vx;
+      this.y+=vy;
+    }
+  }
+
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,2,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.fill();
+  }
+}
+
+class Particle{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.angle=Math.random()*Math.PI*2;
+    this.speed=Math.random()*8+2;
+    this.life=1;
+    this.decay=Math.random()*0.02+0.015;
+    this.hue=Math.random()*360;
+  }
+
+  update(i){
+    this.speed*=0.95;
+
+    this.x+=Math.cos(this.angle)*this.speed;
+    this.y+=Math.sin(this.angle)*this.speed+0.6;
+
+    this.life-=this.decay;
+
+    if(this.life<=0){
+      particles.splice(i,1);
+    }
+  }
+
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,3,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${this.hue},100%,60%,${this.life})`;
+    ctx.fill();
+  }
+}
+
+function explode(x,y){
+
+  for(let i=0;i<100;i++){
+    particles.push(new Particle(x,y));
+  }
+}
+
+function loop(){
+
+  requestAnimationFrame(loop);
+
+  ctx.fillStyle="rgba(0,0,0,0.2)";
+  ctx.fillRect(0,0,cw,ch);
+
+  fireworks.forEach((f,i)=>{
+    f.draw();
+    f.update(i);
+  });
+
+  particles.forEach((p,i)=>{
+    p.draw();
+    p.update(i);
+  });
+}
+
+function initFireworks(){
+
+  loop();
+
+  setInterval(()=>{
+
+    let sx=Math.random()*cw;
+    let sy=ch;
+
+    let tx=Math.random()*cw;
+    let ty=Math.random()*ch*0.5;
+
+    fireworks.push(new Firework(sx,sy,tx,ty));
+
+  },700);
+}
+
+</script>
+
+</body>
+</html>
